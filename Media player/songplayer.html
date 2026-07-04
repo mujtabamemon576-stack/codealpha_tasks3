@@ -1,0 +1,619 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Young Stunners Player</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background: #0d0d0d;
+        color: #fff;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      .container {
+        display: flex;
+        gap: 20px;
+        max-width: 780px;
+        width: 100%;
+        flex-wrap: wrap;
+      }
+
+      .player-card {
+        flex: 1;
+        min-width: 280px;
+        background: #1a1a1a;
+        border-radius: 20px;
+        padding: 28px 24px;
+        border: 1px solid #2a2a2a;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .album-art {
+        width: 100%;
+        aspect-ratio: 1;
+        border-radius: 14px;
+        overflow: hidden;
+        position: relative;
+        background: #111;
+      }
+      .album-art img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.4s ease;
+      }
+      .album-art.playing img {
+        transform: scale(1.04);
+      }
+      .album-art.playing {
+        box-shadow: 0 0 40px rgba(255, 200, 0, 0.2);
+      }
+      .album-art .img-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          to top,
+          rgba(0, 0, 0, 0.5) 0%,
+          transparent 50%
+        );
+      }
+
+      .song-info {
+        text-align: center;
+      }
+      .song-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #fff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .song-artist {
+        font-size: 13px;
+        color: #888;
+        margin-top: 4px;
+      }
+      .song-album {
+        font-size: 12px;
+        color: #ffc800;
+        margin-top: 2px;
+        font-weight: 500;
+      }
+
+      .progress-section {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .progress-bar {
+        width: 100%;
+        height: 5px;
+        background: #2a2a2a;
+        border-radius: 5px;
+        cursor: pointer;
+        position: relative;
+      }
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #ffc800, #ff8c00);
+        border-radius: 5px;
+        width: 0%;
+        pointer-events: none;
+        transition: width 0.2s linear;
+      }
+      .progress-bar input[type="range"] {
+        position: absolute;
+        inset: -6px 0;
+        width: 100%;
+        opacity: 0;
+        cursor: pointer;
+        margin: 0;
+      }
+      .times {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        color: #666;
+      }
+
+      .controls {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+      }
+      .ctrl-btn {
+        background: none;
+        border: none;
+        color: #888;
+        cursor: pointer;
+        border-radius: 50%;
+        width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        transition:
+          color 0.15s,
+          background 0.15s,
+          transform 0.1s;
+      }
+      .ctrl-btn:hover {
+        color: #fff;
+        background: #2a2a2a;
+      }
+      .ctrl-btn:active {
+        transform: scale(0.9);
+      }
+      .ctrl-btn.on {
+        color: #ffc800;
+      }
+      .play-btn {
+        width: 52px;
+        height: 52px;
+        background: linear-gradient(135deg, #ffc800, #ff8c00);
+        border-radius: 50%;
+        color: #000;
+        font-size: 22px;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          transform 0.1s,
+          box-shadow 0.2s;
+        box-shadow: 0 4px 20px rgba(255, 200, 0, 0.3);
+      }
+      .play-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 28px rgba(255, 200, 0, 0.45);
+      }
+      .play-btn:active {
+        transform: scale(0.95);
+      }
+
+      .vol-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .vol-row i {
+        font-size: 17px;
+        color: #666;
+      }
+      .vol-row input[type="range"] {
+        flex: 1;
+        accent-color: #ffc800;
+        cursor: pointer;
+      }
+      .vol-val {
+        font-size: 12px;
+        color: #555;
+        min-width: 28px;
+        text-align: right;
+      }
+
+      .playlist-card {
+        width: 230px;
+        background: #1a1a1a;
+        border-radius: 20px;
+        border: 1px solid #2a2a2a;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .pl-header {
+        padding: 16px 16px 12px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #888;
+        border-bottom: 1px solid #2a2a2a;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+      .pl-list {
+        overflow-y: auto;
+        flex: 1;
+        max-height: 440px;
+      }
+      .pl-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        cursor: pointer;
+        border-bottom: 1px solid #1f1f1f;
+        transition: background 0.15s;
+      }
+      .pl-item:last-child {
+        border-bottom: none;
+      }
+      .pl-item:hover {
+        background: #242424;
+      }
+      .pl-item.active {
+        background: #222;
+      }
+      .pl-thumb {
+        width: 40px;
+        height: 40px;
+        border-radius: 6px;
+        object-fit: cover;
+        flex-shrink: 0;
+        border: 1px solid #333;
+      }
+      .pl-num {
+        font-size: 12px;
+        color: #555;
+        width: 16px;
+        text-align: center;
+        flex-shrink: 0;
+      }
+      .pl-item.active .pl-num {
+        display: none;
+      }
+      .pl-icon {
+        display: none;
+        font-size: 12px;
+        color: #ffc800;
+        width: 16px;
+        text-align: center;
+        flex-shrink: 0;
+      }
+      .pl-item.active .pl-icon {
+        display: block;
+      }
+      .pl-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .pl-name {
+        font-size: 13px;
+        font-weight: 500;
+        color: #ddd;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .pl-item.active .pl-name {
+        color: #ffc800;
+      }
+      .pl-artist-name {
+        font-size: 11px;
+        color: #555;
+      }
+
+      .audio-elements {
+        display: none;
+      }
+
+      @media (max-width: 560px) {
+        .container {
+          flex-direction: column;
+        }
+        .playlist-card {
+          width: 100%;
+        }
+        .pl-list {
+          max-height: 260px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- AUDIO TAGS — src mein apni MP3 file ka path dalen -->
+    <div class="audio-elements">
+      <audio id="audio-0" src="AFSANAY .mp3" preload="metadata"></audio>
+      <audio id="audio-1" src="4am.mp3" preload="metadata"></audio>
+      <audio
+        id="audio-2"
+        src="smile.mp3  "
+        preload="metadata"
+      ></audio>
+      <audio id="audio-3" src="jalega.mp3" preload="metadata"></audio>
+      <audio id="audio-4" src="why.mp3" preload="metadata"></audio>
+      <audio id="audio-5" src="Gumaan.mp3" preload="metadata"></audio>
+      <audio id="audio-6" src="dont.mp3" preload="metadata"></audio>
+      <audio id="audio-7" src="karachi.mp3" preload="metadata"></audio>
+    </div>
+
+    <div class="container">
+      <div class="player-card">
+        <div class="album-art" id="album-art">
+          <img id="main-cover" src="" alt="Album Art" />
+          <div class="img-overlay"></div>
+        </div>
+
+        <div class="song-info">
+          <div class="song-title" id="song-title">Keh Dena</div>
+          <div class="song-artist" id="song-artist">Young Stunners</div>
+          <div class="song-album" id="song-album">
+            Talha Anjum & Talhah Yunus
+          </div>
+        </div>
+
+        <div class="progress-section">
+          <div class="progress-bar">
+            <div class="progress-fill" id="prog-fill"></div>
+            <input
+              type="range"
+              id="prog-input"
+              min="0"
+              max="100"
+              value="0"
+              step="0.1"
+            />
+          </div>
+          <div class="times">
+            <span id="t-cur">0:00</span>
+            <span id="t-dur">0:00</span>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button class="ctrl-btn" id="btn-shuffle" title="Shuffle">
+            <i class="ti ti-arrows-shuffle"></i>
+          </button>
+          <button class="ctrl-btn" id="btn-prev" title="Previous">
+            <i class="ti ti-player-skip-back"></i>
+          </button>
+          <button class="play-btn" id="btn-play" title="Play/Pause">
+            <i class="ti ti-player-play"></i>
+          </button>
+          <button class="ctrl-btn" id="btn-next" title="Next">
+            <i class="ti ti-player-skip-forward"></i>
+          </button>
+          <button class="ctrl-btn" id="btn-repeat" title="Repeat">
+            <i class="ti ti-repeat"></i>
+          </button>
+        </div>
+
+        <div class="vol-row">
+          <i class="ti ti-volume"></i>
+          <input
+            type="range"
+            id="vol-input"
+            min="0"
+            max="100"
+            value="80"
+            step="1"
+          />
+          <span class="vol-val" id="vol-val">80%</span>
+        </div>
+      </div>
+
+      <div class="playlist-card">
+        <div class="pl-header">
+          Young Stunners
+          <span style="color: #444; font-weight: 400">· 8 songs</span>
+        </div>
+        <div class="pl-list" id="pl-list"></div>
+      </div>
+    </div>
+
+    <script>
+      const SONGS = [
+        {
+          title: "Afsany",
+          artist: "Young Stunners",
+          album: "Talha Anjum & Talhah Yunus",
+          cover: "1..webp",
+        },
+        {
+          title: "4am in Karachi",
+          artist: "Young Stunners",
+          album: "Talha Anjum & Talhah Yunus",
+          cover: "3.jfif",
+        },
+        {
+          title: "Smile",
+          artist: "Young Stunners",
+          album: "Talha Anjum & Talhah Yunus",
+          cover: "smile.jfif",
+        },
+        {
+          title: "Jalega",
+          artist: "Young Stunners",
+          album: "Talha Anjum & Talhah Yunus",
+          cover: "jalega.jfif",
+        },
+        {
+          title: "Why",
+          artist: "Young Stunners",
+          album: "Talha Anjum & Talhah Yunus",
+          cover: "why.jfif",
+        },
+        {
+          title: "Gumaan",
+          artist: "Young Stunners",
+          album: "Talha Anjum & Talhah Yunus",
+          cover: "2.jfif",
+        },
+        {
+          title: "Don't Mind",
+          artist: "Young Stunners",
+          album: "Talha Anjum & Talhah Yunus",
+          cover: "dont.jfif",
+        },
+        {
+          title: "Karachi Chal",
+          artist: "Young Stunners",
+          album: "Talha Anjum & Talhah Yunus",
+          cover: "karachi.jfif",
+        },
+      ];
+
+      let curIdx = 0,
+        shuffle = false,
+        repeat = false;
+      const audioEls = SONGS.map((_, i) =>
+        document.getElementById("audio-" + i),
+      );
+
+      function fmt(s) {
+        if (isNaN(s) || !isFinite(s)) return "0:00";
+        return (
+          Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0")
+        );
+      }
+      function cur() {
+        return audioEls[curIdx];
+      }
+
+      function loadSong(idx, autoplay = false) {
+        audioEls.forEach((a) => {
+          a.pause();
+          a.currentTime = 0;
+        });
+        curIdx = idx;
+        const s = SONGS[idx],
+          a = cur();
+        document.getElementById("song-title").textContent = s.title;
+        document.getElementById("song-artist").textContent = s.artist;
+        document.getElementById("song-album").textContent = s.album;
+        document.getElementById("main-cover").src = s.cover;
+        document.getElementById("prog-fill").style.width = "0%";
+        document.getElementById("prog-input").value = 0;
+        document.getElementById("t-cur").textContent = "0:00";
+        document.getElementById("t-dur").textContent = "0:00";
+        a.addEventListener("loadedmetadata", function onM() {
+          document.getElementById("t-dur").textContent = fmt(a.duration);
+          a.removeEventListener("loadedmetadata", onM);
+        });
+        renderPlaylist();
+        if (autoplay) playAudio();
+        else updateBtn(false);
+      }
+
+      function playAudio() {
+        const a = cur();
+        a.volume = document.getElementById("vol-input").value / 100;
+        a.play().catch(() => {});
+        updateBtn(true);
+        document.getElementById("album-art").classList.add("playing");
+      }
+      function pauseAudio() {
+        cur().pause();
+        updateBtn(false);
+        document.getElementById("album-art").classList.remove("playing");
+      }
+      function updateBtn(p) {
+        document.getElementById("btn-play").innerHTML = p
+          ? '<i class="ti ti-player-pause"></i>'
+          : '<i class="ti ti-player-play"></i>';
+        document.getElementById("album-art").classList.toggle("playing", p);
+      }
+
+      audioEls.forEach((a, idx) => {
+        a.addEventListener("timeupdate", () => {
+          if (curIdx !== idx) return;
+          const pct = a.duration ? (a.currentTime / a.duration) * 100 : 0;
+          document.getElementById("prog-fill").style.width =
+            pct.toFixed(2) + "%";
+          document.getElementById("prog-input").value = pct.toFixed(2);
+          document.getElementById("t-cur").textContent = fmt(a.currentTime);
+          document.getElementById("t-dur").textContent = fmt(a.duration);
+        });
+        a.addEventListener("ended", () => {
+          if (repeat) {
+            a.currentTime = 0;
+            a.play();
+            return;
+          }
+          const next = shuffle
+            ? Math.floor(Math.random() * SONGS.length)
+            : (curIdx + 1) % SONGS.length;
+          loadSong(next, true);
+        });
+      });
+
+      document
+        .getElementById("btn-play")
+        .addEventListener("click", () =>
+          cur().paused ? playAudio() : pauseAudio(),
+        );
+      document.getElementById("btn-next").addEventListener("click", () => {
+        const n = shuffle
+          ? Math.floor(Math.random() * SONGS.length)
+          : (curIdx + 1) % SONGS.length;
+        loadSong(n, !cur().paused);
+      });
+      document.getElementById("btn-prev").addEventListener("click", () => {
+        const a = cur();
+        if (a.currentTime > 3) {
+          a.currentTime = 0;
+          return;
+        }
+        loadSong((curIdx - 1 + SONGS.length) % SONGS.length, !a.paused);
+      });
+      document
+        .getElementById("btn-shuffle")
+        .addEventListener("click", function () {
+          shuffle = !shuffle;
+          this.classList.toggle("on", shuffle);
+        });
+      document
+        .getElementById("btn-repeat")
+        .addEventListener("click", function () {
+          repeat = !repeat;
+          this.classList.toggle("on", repeat);
+        });
+      document
+        .getElementById("prog-input")
+        .addEventListener("input", function () {
+          const a = cur();
+          if (a.duration) a.currentTime = (this.value / 100) * a.duration;
+        });
+      document
+        .getElementById("vol-input")
+        .addEventListener("input", function () {
+          cur().volume = this.value / 100;
+          document.getElementById("vol-val").textContent = this.value + "%";
+        });
+      document.addEventListener("keydown", (e) => {
+        if (e.target.tagName === "INPUT") return;
+        if (e.code === "Space") {
+          e.preventDefault();
+          document.getElementById("btn-play").click();
+        }
+        if (e.code === "ArrowRight")
+          document.getElementById("btn-next").click();
+        if (e.code === "ArrowLeft") document.getElementById("btn-prev").click();
+      });
+
+      function renderPlaylist() {
+        const list = document.getElementById("pl-list");
+        list.innerHTML = "";
+        SONGS.forEach((s, i) => {
+          const item = document.createElement("div");
+          item.className = "pl-item" + (i === curIdx ? " active" : "");
+          item.innerHTML = `<span class="pl-num">${i + 1}</span><i class="ti ti-player-play pl-icon"></i><img class="pl-thumb" src="${s.cover}" alt="${s.title}" onerror="this.style.display='none'"><div class="pl-info"><div class="pl-name">${s.title}</div><div class="pl-artist-name">${s.artist}</div></div>`;
+          item.addEventListener("click", () => loadSong(i, true));
+          list.appendChild(item);
+        });
+      }
+
+      loadSong(0);
+    </script>
+  </body>
+</html>
